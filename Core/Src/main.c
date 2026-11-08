@@ -31,6 +31,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define EXAMP_CCW 1
+#define EXAMP_CW 2
+#define EXAMP_CW_CCW 3
+#define CONTROL_BY_HALL 4
+#define EXAMP EXAMP_CCW
 
 /* USER CODE END PD */
 
@@ -97,19 +102,44 @@ int main(void) {
 	HAL_Delay(1000);
 	HAL_GPIO_WritePin(STANDBY_GPIO_Port, STANDBY_Pin, GPIO_PIN_SET);
 	// 2. duty 설정 (ARR=999 -> CCR/1000)
-	TIM1->CCR1 = 600;   // CH1 30%
-	TIM1->CCR2 = 600;   // CH2 70%
+	TIM1->CCR1 = 400;   // CH1 30%
+	TIM1->CCR2 = 400;   // CH2 70%
 
 	// 3. ENABLE =========================
-
+#if EXAMP == EXAMP_CW_CCW
 	// capture/compare output enable (CC1E, CC2E), CC1P/CC2P=0 -> active high
 //	TIM1->CCER |= (1 << 0);
-	TIM1->CCER |= (1 << 4);
+//	TIM1->CCER |= (1 << 4);
+	// main output enable
+	TIM1->BDTR |= (1 << 15);
+	// counter enable
+	TIM1->CR1 |= (1 << 0);
+#elif EXAMP == CONTROL_BY_HALL
+	// capture/compare output enable (CC1E, CC2E), CC1P/CC2P=0 -> active high
+//	TIM1->CCER |= (1 << 0);
+//	TIM1->CCER |= (1 << 4);
 	// main output enable
 	TIM1->BDTR |= (1 << 15);
 	// counter enable
 	TIM1->CR1 |= (1 << 0);
 
+#elif EXAMP == EXAMP_CW
+	// capture/compare output enable (CC1E, CC2E), CC1P/CC2P=0 -> active high
+	TIM1->CCER &= ~(1 << 0);
+	TIM1->CCER |= (1 << 4);
+	// main output enable
+	TIM1->BDTR |= (1 << 15);
+	// counter enable
+	TIM1->CR1 |= (1 << 0);
+#elif EXAMP == EXAMP_CCW
+	// capture/compare output enable (CC1E, CC2E), CC1P/CC2P=0 -> active high
+	TIM1->CCER |= (1 << 0);
+	TIM1->CCER &= ~(1 << 4);
+	// main output enable
+	TIM1->BDTR |= (1 << 15);
+	// counter enable
+	TIM1->CR1 |= (1 << 0);
+#endif
 	// ==================================
 
 	/* USER CODE END 2 */
@@ -122,20 +152,25 @@ int main(void) {
 		/* USER CODE BEGIN 3 */
 //		hall1_state = HAL_GPIO_ReadPin(HALL1_GPIO_Port, HALL1_Pin);
 //		hall2_state = HAL_GPIO_ReadPin(HALL2_GPIO_Port, HALL2_Pin);
-		if(turn){
+#if EXAMP == EXAMP_CW_CCW
+		if (turn) {
 			TIM1->CCER |= (1 << 0);
 			TIM1->CCER &= ~(1 << 4);
-			turn=0;
-		}else{
+			turn = 0;
+		} else {
 			TIM1->CCER &= ~(1 << 0);
 			TIM1->CCER |= (1 << 4);
-			turn=1;
+			turn = 1;
 		}
 
-//	  if((hall1_state==1)&&(hall2_state==0)){
-//
-//	  }
 		HAL_Delay(2000);
+#elif EXAMP == CONTROL_BY_HALL
+	  if((hall1_state==1)&&(hall2_state==0)){
+
+	  }
+
+#endif
+
 	}
 	/* USER CODE END 3 */
 }
