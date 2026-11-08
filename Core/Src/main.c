@@ -43,7 +43,9 @@
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
-
+volatile uint8_t hall1_state, hall2_state;
+volatile int32_t encoder_count = 0;   // 방향 포함 누적 카운트 (4체배)
+uint8_t last_encoded = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,8 +94,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   // 1. STANDBY 해제
+  HAL_GPIO_WritePin(STANDBY_GPIO_Port, STANDBY_Pin, GPIO_PIN_RESET);
+  HAL_Delay(1000);
   HAL_GPIO_WritePin(STANDBY_GPIO_Port, STANDBY_Pin, GPIO_PIN_SET);
-
   // 2. duty 설정 (ARR=999 -> CCR/1000)
   TIM1->CCR1 = 300;   // CH1 30%
   TIM1->CCR2 = 700;   // CH2 70%
@@ -119,6 +122,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  hall1_state=HAL_GPIO_ReadPin(HALL1_GPIO_Port, HALL1_Pin);
+	  hall2_state=HAL_GPIO_ReadPin(HALL2_GPIO_Port, HALL2_Pin);
   }
   /* USER CODE END 3 */
 }
@@ -252,17 +257,11 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(STANDBY_GPIO_Port, STANDBY_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pins : HALL1_IN_Pin HALL2_IN_Pin */
-  GPIO_InitStruct.Pin = HALL1_IN_Pin|HALL2_IN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
   /*Configure GPIO pin : STANDBY_Pin */
   GPIO_InitStruct.Pin = STANDBY_Pin;
@@ -270,6 +269,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(STANDBY_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : HALL1_Pin HALL2_Pin */
+  GPIO_InitStruct.Pin = HALL1_Pin|HALL2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

@@ -59,12 +59,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define HALL1_IN_Pin GPIO_PIN_0
-#define HALL1_IN_GPIO_Port GPIOF
-#define HALL2_IN_Pin GPIO_PIN_1
-#define HALL2_IN_GPIO_Port GPIOF
 #define STANDBY_Pin GPIO_PIN_3
 #define STANDBY_GPIO_Port GPIOC
+#define HALL1_Pin GPIO_PIN_0
+#define HALL1_GPIO_Port GPIOA
+#define HALL2_Pin GPIO_PIN_1
+#define HALL2_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 
