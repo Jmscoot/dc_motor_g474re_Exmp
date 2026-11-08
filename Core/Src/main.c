@@ -35,7 +35,7 @@
 #define EXAMP_CW 2
 #define EXAMP_CW_CCW 3
 #define CONTROL_BY_HALL 4
-#define EXAMP EXAMP_CCW
+#define EXAMP EXAMP_CW
 
 /* USER CODE END PD */
 
@@ -114,10 +114,10 @@ int main(void) {
 	TIM1->BDTR |= (1 << 15);
 	// counter enable
 	TIM1->CR1 |= (1 << 0);
-#elif EXAMP == CONTROL_BY_HALL
+#elif EXAMP == CONTROL_BY_HALL	//일단 CCW방향으로 회전
 	// capture/compare output enable (CC1E, CC2E), CC1P/CC2P=0 -> active high
-//	TIM1->CCER |= (1 << 0);
-//	TIM1->CCER |= (1 << 4);
+	TIM1->CCER |= (1 << 0);
+	TIM1->CCER &= ~(1 << 4);
 	// main output enable
 	TIM1->BDTR |= (1 << 15);
 	// counter enable
@@ -150,8 +150,7 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
-//		hall1_state = HAL_GPIO_ReadPin(HALL1_GPIO_Port, HALL1_Pin);
-//		hall2_state = HAL_GPIO_ReadPin(HALL2_GPIO_Port, HALL2_Pin);
+
 #if EXAMP == EXAMP_CW_CCW
 		if (turn) {
 			TIM1->CCER |= (1 << 0);
@@ -165,9 +164,17 @@ int main(void) {
 
 		HAL_Delay(2000);
 #elif EXAMP == CONTROL_BY_HALL
-	  if((hall1_state==1)&&(hall2_state==0)){
-
-	  }
+		hall1_state = HAL_GPIO_ReadPin(HALL1_GPIO_Port, HALL1_Pin);
+		hall2_state = HAL_GPIO_ReadPin(HALL2_GPIO_Port, HALL2_Pin);
+		if ((hall1_state == 1) && (hall2_state == 0)) {
+			// CW방향으로 전환
+			TIM1->CCER &= ~(1 << 0);
+			TIM1->CCER |= (1 << 4);
+		} else if ((hall1_state == 1) && (hall2_state == 1)) {
+			// CCW방향으로 전환
+			TIM1->CCER |= (1 << 0);
+			TIM1->CCER &= ~(1 << 4);
+		}
 
 #endif
 
